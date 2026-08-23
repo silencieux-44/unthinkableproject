@@ -1,0 +1,105 @@
+/* ---- Marquee: a cinematic-marquee visual theme for the booking flow ---- */
+:root {
+  --bg: #0c0b10;
+  --bg-elevated: #16141c;
+  --bg-card: #1c1a24;
+  --gold: #c9a227;
+  --gold-bright: #e8c766;
+  --text: #f2ede1;
+  --text-dim: #a39cae;
+  --seat-available: #2c8f5f;
+  --seat-held: #c9a227;
+  --seat-booked: #7a1f2b;
+  --seat-selected: #4d8fd6;
+  --border: #2c2836;
+  --radius: 10px;
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body: 'Manrope', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at top, #201c29 0%, var(--bg) 60%);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: 0.02em; }
+
+a { color: var(--gold-bright); }
+
+.app-shell { max-width: 1100px; margin: 0 auto; padding: 0 24px 64px; }
+
+.navbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+.navbar .brand { font-family: var(--font-display); font-size: 1.6rem; color: var(--gold-bright); text-decoration: none; }
+.navbar .brand span { color: var(--text); }
+.navbar nav a { color: var(--text-dim); text-decoration: none; margin-left: 20px; font-weight: 500; font-size: 0.92rem; }
+.navbar nav a:hover { color: var(--gold-bright); }
+
+.btn {
+  display: inline-block; padding: 10px 20px; border-radius: 999px; border: 1px solid var(--gold);
+  background: transparent; color: var(--gold-bright); font-weight: 700; cursor: pointer;
+  font-family: var(--font-body); font-size: 0.92rem; transition: all 0.15s ease;
+}
+.btn:hover { background: var(--gold); color: #14121a; }
+.btn.primary { background: var(--gold); color: #14121a; }
+.btn.primary:hover { background: var(--gold-bright); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn.danger { border-color: var(--seat-booked); color: #ff9aa8; }
+
+.card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; margin-bottom: 16px;
+}
+
+input, select, textarea {
+  width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--bg-elevated); color: var(--text); font-family: var(--font-body); margin-bottom: 12px;
+}
+label { display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 4px; }
+
+.event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+.event-card { cursor: pointer; }
+.event-card .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; background: var(--bg-elevated); color: var(--gold-bright); border: 1px solid var(--border); }
+
+.seat-map { display: flex; flex-direction: column; gap: 6px; align-items: center; margin: 24px 0; }
+.seat-row { display: flex; gap: 6px; align-items: center; }
+.row-label { width: 20px; color: var(--text-dim); font-size: 0.8rem; text-align: right; margin-right: 4px; }
+.seat {
+  width: 28px; height: 28px; border-radius: 6px 6px 3px 3px; border: none; cursor: pointer;
+  font-size: 0.65rem; color: rgba(0,0,0,0.6); font-weight: 700; display: flex; align-items: center; justify-content: center;
+  transition: transform 0.1s ease;
+}
+.seat:hover:not(:disabled) { transform: translateY(-2px); }
+.seat:disabled { cursor: not-allowed; }
+.seat.AVAILABLE { background: var(--seat-available); }
+.seat.HELD { background: var(--seat-held); opacity: 0.6; }
+.seat.BOOKED { background: var(--seat-booked); opacity: 0.5; }
+.seat.SELECTED { background: var(--seat-selected); box-shadow: 0 0 12px var(--seat-selected); }
+
+.legend { display: flex; gap: 16px; font-size: 0.8rem; color: var(--text-dim); justify-content: center; margin-top: 8px; }
+.legend .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 6px; }
+
+.timer-banner {
+  background: var(--bg-elevated); border: 1px solid var(--gold); border-radius: var(--radius);
+  padding: 12px 18px; text-align: center; color: var(--gold-bright); font-weight: 700; margin-bottom: 16px;
+}
+
+.stub {
+  background: linear-gradient(135deg, #1c1a24 0%, #241f2e 100%);
+  border: 1px dashed var(--gold); border-radius: var(--radius); padding: 18px; position: relative;
+}
+
+.table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.table th, .table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.table th { color: var(--text-dim); font-weight: 600; }
+
+.error-text { color: #ff9aa8; font-size: 0.85rem; }
+.muted { color: var(--text-dim); }

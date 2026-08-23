@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ORGANISER
+  ADMIN
+}
+
+enum SeatStatus {
+  AVAILABLE
+  HELD
+  BOOKED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+enum WaitlistStatus {
+  WAITING
+  OFFERED
+  EXPIRED
+  CONVERTED
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+
+  events         Event[]         @relation("OrganiserEvents")
+  bookings       Booking[]
+  waitlistEntries WaitlistEntry[]
+}
+
+// A physical venue with a seat layout (rows x columns) and category zones
+model Venue {
+  id         String   @id @default(uuid())
+  name       String
+  address    String
+  // seatLayout defines rows/cols and which seats belong to which category
+  // shape: { rows: number, cols: number, categories: [{ name, price, rows: [rowIndices] }] }
+  seatLayout Json
+  createdAt  DateTime @default(now())
+
+  events Event[]
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  type        String   // "MOVIE" | "CONCERT"
+  description String?
+  date        DateTime
+  organiserId String
+  organiser   User     @relation("OrganiserEvents", fields: [organiserId], references: [id])
+  venueId     String
+  venue       Venue    @relation(fields: [venueId], references: [id])
+  // per-category pricing override for this event, e.g. { "Premium": 500, "Standard": 250 }
+  pricing     Json
+  createdAt   DateTime @default(now())
+
+  seats           Seat[]
+  bookings        Booking[]
+  waitlistEntries WaitlistEntry[]
+}
+
+// One row per seat per event (denormalised from venue.seatLayout on event creation)
+// This is the row that concurrency control locks on.
+model Seat {
+  id         String     @id @default(uuid())
+  eventId    String
+  event      Event      @relation(fields: [eventId], references: [id])
+  rowLabel   String
+  seatNumber Int
+  category   String
+  status     SeatStatus @default(AVAILABLE)
+  heldBy     String?    // userId currently holding the seat
+  heldUntil  DateTime?  // hold TTL expiry
+  bookingId  String?
+  booking    Booking?   @relation(fields: [bookingId], references: [id])
+  version    Int        @default(0) // optimistic-lock guard, belt-and-braces alongside row locking
+
+  @@unique([eventId, rowLabel, seatNumber])
+  @@index([eventId, status])
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  reference     String        @unique // human-readable + QR-encoded reference
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  eventId       String
+  event         Event         @relation(fields: [eventId], references: [id])
+  status        BookingStatus @default(CONFIRMED)
+  totalAmount   Float
+  createdAt     DateTime      @default(now())
+  cancelledAt   DateTime?
+
+  seats Seat[]
+}
+
+// Waitlist queue, one entry per customer per (event, category)
+model WaitlistEntry {
+  id          String         @id @default(uuid())
+  eventId     String
+  event       Event          @relation(fields: [eventId], references: [id])
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  category    String
+  status      WaitlistStatus @default(WAITING)
+  joinedAt    DateTime       @default(now())
+  // set when an admin/cron offers this entry a seat
+  offeredSeatId String?
+  offerToken    String?      // signed token embedded in the "complete your booking" email link
+  offerExpiresAt DateTime?
+
+  @@index([eventId, category, status, joinedAt])
+}
